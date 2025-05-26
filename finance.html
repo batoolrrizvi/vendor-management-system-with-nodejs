@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finance Dashboard</title>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar button {
+            margin: 10px 0;
+            padding: 10px;
+            background: #34495e;
+            border: none;
+            color: white;
+            cursor: pointer;
+            text-align: left;
+        }
+        .sidebar button:hover {
+            background: #1abc9c;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .budget-table, .purchase-orders-table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        .budget-table th, .purchase-orders-table th, .budget-table td, .purchase-orders-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        .budget-table th, .purchase-orders-table th {
+            background-color: #f4f4f4;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Finance Dashboard</h2>
+        <button onclick="viewBudgets()">View Budgets</button>
+        <button onclick="viewPurchaseOrders()">View Purchase Orders</button>
+        <button onclick="adjustBudget()">Adjust Budget</button>
+        <button id = 'logout' onclick="logOut()">Log Out</button>
+    </div>
+    <div class="content" id="content-area">
+        <h1 text-align: center-align>Finance Team</h1>
+    </div>
+
+    <script>
+        // view budgets of all departments
+        function viewBudgets() {
+            fetch('/budgets')
+        .then(response => response.json())
+                    .then(data => {
+                const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                        <h2>Budgets Overview</h2>
+                        <table class="budget-table">
+                            <thead>
+                                <tr>
+                                    <th>Department Name</th>
+                                    <th>Budget</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.map(department => `
+                                    <tr>
+                                        <td>${department.DeptName}</td>
+                                        <td>${department.Budget}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                })
+                .catch(err => {
+                    alert("Error getting the budgets");
+                });
+        }
+
+        // View all purchase orders
+        function viewPurchaseOrders() {
+            fetch('/purchase-orders2')
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                        <h2>Purchase Orders</h2>
+                        <table class="purchase-orders-table">
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Vendor ID</th>
+                                    <th>Member ID</th>
+                                    <th>Total Cost</th>
+                                    <th>Order Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.map(order => `
+                                    <tr>
+                                        <td>${order.OrderID}</td>
+                                        <td>${order.VendorID}</td>
+                                        <td>${order.MemberID}</td>
+                                        <td>${order.TotalCost}</td>
+                                        <td>${order.OrderStatus}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                });
+        }
+
+        // Adjust budget
+        function adjustBudget() {
+            const deptID = prompt('Enter Department ID to adjust budget:');
+            const newBudget = prompt('Enter new budget amount:');
+            if (newBudget && deptID) {
+                fetch('/budget/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ deptID, newBudget })
+                })
+                .then(() => alert('Budget updated.'));
+            }
+        }
+
+        // Edit budget
+        function editBudget(deptID) {
+            const newBudget = prompt('Enter new budget amount for this department:');
+            if (newBudget) {
+                fetch('/budget/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ deptID, newBudget })
+                })
+                .then(() => alert('Budget updated.'));
+            }
+        }
+        function logOut() {
+            window.location.assign("http://localhost:3000/");
+        }
+    </script>
+</body>
+</html>

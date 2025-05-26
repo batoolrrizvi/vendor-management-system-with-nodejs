@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Management</title>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar button {
+            margin: 10px 0;
+            padding: 10px;
+            background: #34495e;
+            border: none;
+            color: white;
+            cursor: pointer;
+            text-align: left;
+        }
+        .sidebar button:hover {
+            background: #1abc9c;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .vendor-container {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Vendor Management</h2>
+        <button onclick="viewVendors()">View Vendors</button>
+        <button onclick="manageVendors()">Manage Vendors</button>
+        <button onclick="complianceCheck()">Compliance Check</button>
+        <button id = 'logout' onclick="logOut()">Log Out</button>
+    </div>
+    <div class="content" id="content-area">
+        <h1>Vendor Management Team</h1>
+    </div>
+
+    <script>
+        // View vendors
+        function viewVendors() {
+            fetch('/vendors')
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                        <h2>Vendors List</h2>
+                        <div class="vendor-container">
+                            ${data.map(vendor => `
+                                <div>
+                                    <h3>${vendor.VendorName}</h3>
+                                    <p>Service Category: ${vendor.ServiceCategory}</p>
+                                    <p>Email: ${vendor.Email}</p>
+                                    <p>Compliance Status: ${vendor.isCompliant ? 'Compliant' : 'Not Compliant'}</p>
+                                    <button onclick="updateVendor(${vendor.VendorID})">Update Vendor</button>
+                                    <button onclick="removeVendor(${vendor.VendorID})">Remove Vendor</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                });
+        }
+
+        // Manage vendors (add)
+        function manageVendors() {
+            const content = document.getElementById('content-area');
+            content.innerHTML = `
+                <h2>Manage Vendors</h2>
+                <div class="form-group">
+                    <label for="vendorName">Vendor Name:</label>
+                    <input type="text" id="vendorName">
+                </div>
+                <div class="form-group">
+                    <label for="serviceCategory">Service Category:</label>
+                    <input type="text" id="serviceCategory">
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email">
+                </div>
+                <button onclick="addVendor()">Add Vendor</button>
+            `;
+        }
+
+        // Add a newwwwwwwwwwww vendor ;( 
+        function addVendor() {
+            const vendorName = document.getElementById('vendorName').value;
+            const serviceCategory = document.getElementById('serviceCategory').value;
+            const email = document.getElementById('email').value;
+
+            fetch('/vendor/add', {
+                method: 'POST',
+                headers: 
+                { 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ 
+                    vendorName, serviceCategory, email 
+                })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message));
+        }
+
+        // Remove vendor
+        function removeVendor(vendorID) {
+            fetch(`/vendor/remove/${vendorID}`, 
+                        { 
+                            method: 'DELETE' 
+                        }
+                )
+                .then(response => response.json())
+                .then(data => alert(data.message));
+        }
+
+        // update vendor details
+        function updateVendor(vendorID) {
+            const vendorName = prompt("Enter new vendor name:");
+            const serviceCategory = prompt("Enter new service category:");
+            const email = prompt("Enter new email:");
+
+            fetch('/vendor/update', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ 
+                    vendorID, vendorName, serviceCategory, email 
+                })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message));
+        }
+
+        // Compliance check
+        function complianceCheck() {
+            fetch('/vendors/compliance')
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                        <h2>Compliance Check</h2>
+                        <div class="vendor-container">
+                            ${data.map(vendor => `
+                                <div>
+                                    <h3>${vendor.VendorName}</h3>
+                                    <p>Compliance Status: ${vendor.isCompliant ? 'Compliant' : 'Not Compliant'}</p>
+                                    <button onclick="changeCompliance(${vendor.VendorID}, ${vendor.isCompliant})">${vendor.isCompliant ? 'Mark as Non-Compliant' : 'Mark as Compliant'}</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `;
+                });
+        }
+
+        // change vendor compliance status
+        function changeCompliance(vendorID, isCompliant) {
+            fetch('/vendor/compliance', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ 
+                    vendorID, isCompliant: !isCompliant 
+
+                })
+            })
+            .then(response => response.json())
+            .then(data => alert(data.message));
+        }
+        function logOut() {
+            window.location.assign("http://localhost:3000/");
+        }
+    </script>
+</body>
+</html>

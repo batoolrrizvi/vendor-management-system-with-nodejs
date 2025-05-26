@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Procurement Dashboard</title>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar button {
+            margin: 10px 0;
+            padding: 10px;
+            background: #34495e;
+            border: none;
+            color: white;
+            cursor: pointer;
+            text-align: left;
+        }
+        .sidebar button:hover {
+            background: #1abc9c;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+        }
+        .vendor-list {
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Procurement Dashboard</h2>
+        <button onclick="showCreateOrder()">Create Purchase Order</button>
+        <button onclick="showPurchaseOrders()">View Purchase Orders</button>
+        <button onclick="showFeedbackForm()">Vendor Feedback</button>
+        <button onclick="showRatingAssignment()">Assign Vendor Ratings</button> 
+        <button onclick="showPerformanceReports()">Generate Reports</button> 
+        <button id = 'logout' onclick="logOut()">Log Out</button>
+    </div>    
+    <div class="content" id="content-area">
+        <h1 text-align: center>Procurement Team</h1>
+    </div>
+    <script>
+        function showFeedbackForm() {
+            fetch('/vendors')  
+                .then(response => response.json())
+                .then(vendors => {
+                    const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                    <h2>Collect Vendor Feedback</h2>
+                        <div class="form-group">
+                            <label for="vendorID">Select Vendor:</label>
+                            <select id="vendorID">
+                                ${vendors.map(vendor => `
+                                    <option value="${vendor.VendorID}">${vendor.VendorName}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="serviceQuality">Service Quality:</label>
+                            <input type="number" id="serviceQuality" min="1" max="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="deliveryTime">Delivery Time:</label>
+                            <input type="number" id="deliveryTime" min="1" max="10" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pricing">Pricing:</label>
+                            <input type="number" id="pricing" min="1" max="10" required>
+                        </div>
+                        <button onclick="submitFeedback()">Submit Feedback</button>
+                    `;
+                });
+            }
+
+        function submitFeedback() {
+                const vendorID = document.getElementById('vendorID').value;
+            const serviceQuality = parseInt(document.getElementById('serviceQuality').value, 10);
+            const deliveryTime = parseInt(document.getElementById('deliveryTime').value, 10);
+            const pricing = parseInt(document.getElementById('pricing').value, 10);
+
+            fetch('/vendor/feedback', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vendorID, serviceQuality, deliveryTime, pricing }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            });
+        }
+
+        function showRatingAssignment() {
+            fetch('/vendors')  
+                .then(response => response.json())
+                .then(vendors => {
+                    const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                        <h2>Assign Performance Ratings</h2>
+                        <div class="form-group">
+                            <label for="vendorID">Select Vendor:</label>
+                            <select id="vendorID">
+                                ${vendors.map(vendor => `
+                                    <option value="${vendor.VendorID}">${vendor.VendorName}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="performanceRating">Performance Rating:</label>
+                            <input type="number" id="performanceRating" min="1" max="5" required>
+                        </div>
+                        <button onclick="submitRating()">Submit Rating</button>
+                    `;
+                });
+        }
+
+        function submitRating() {
+            const vendorID = document.getElementById('vendorID').value;
+            const performanceRating = parseInt(document.getElementById('performanceRating').value, 10);
+
+            fetch('/vendor/rating', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vendorID, performanceRating }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            });
+        }
+
+        function showPerformanceReports() {
+                fetch('/performance-reports')  
+                    .then(response => response.json())
+                    .then(reports => {
+                        const content = document.getElementById('content-area');
+                        content.innerHTML = `
+                            <h2>Vendor Performance Reports</h2>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Vendor Name</th>
+                                        <th>Performance Rating</th>
+                                        <th>Service Quality</th>
+                                        <th>Delivery Time</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${reports.map(report => `
+                                        <tr>
+                                            <td>${report.VendorName}</td>
+                                            <td>${report.PerformanceRating}</td>
+                                            <td>${report.ServiceQuality}</td>
+                                            <td>${report.DeliveryTime}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        `;
+                    });
+            }
+
+        function showPurchaseOrders() {
+            fetch('/purchase-orders')
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                        <h2>All Purchase Orders</h2>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Order Date</th>
+                                    <th>Vendor</th>
+                                    <th>Username</th>
+                                    <th>Total Cost</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${data.map(order => `
+                                    <tr>
+                                        <td>${order.OrderID}</td>
+                                        <td>${order.OrderDate}</td>
+                                        <td>${order.VendorName}</td>
+                                        <td>${order.username}</td>
+                                        <td>${order.TotalCost}</td>
+                                        <td>${order.OrderStatus}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error getting purchase orders:', error);
+                    alert('Failed to load purchase orders.');
+                });
+        }
+
+        function showCreateOrder() {
+            fetch('/vendors') 
+                .then(response => response.json())
+                .then(vendors => {
+                    const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                        <h2>Create Purchase Order</h2>
+                        <div class="vendor-list">
+                            <label for="vendorID">Select Vendor:</label>
+                            <select id="vendorID">
+                                ${vendors.map(vendor => `
+                                    <option value="${vendor.VendorID}">${vendor.VendorName}</option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="memberID">Enter Member ID:</label>
+                            <input type="number" id="memberID" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="itemName">Item Name:</label>
+                            <input type="text" id="itemName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="price">Price:</label>
+                            <input type="number" id="price" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantity">Quantity:</label>
+                            <input type="number" id="quantity" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="shipAddress">Shipping Address:</label>
+                            <input type="text" id="shipAddress" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="shipCity">Shipping City:</label>
+                            <input type="text" id="shipCity" required>
+                        </div>
+                        <button onclick="createOrder()">Submit Order</button>
+                    `;
+                });
+        }
+
+        function createOrder() {
+            const vendorID = document.getElementById('vendorID').value;
+            const memberID = parseInt(document.getElementById('memberID').value, 10);
+            
+            const itemName = document.getElementById('itemName').value;
+
+            const price = parseFloat(document.getElementById('price').value);
+            const quantity = parseInt(document.getElementById('quantity').value, 10);
+
+            const shipAddress = document.getElementById('shipAddress').value;
+            const shipCity = document.getElementById('shipCity').value;
+
+            const totalCost = price * quantity;
+
+            fetch('/purchase-order/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ vendorID, memberID, itemName, price, quantity, shipAddress, shipCity, totalCost }),
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            });
+        }
+        function logOut() {
+            window.location.assign("http://localhost:3000/");
+        }
+    </script>
+</body>
+</html>

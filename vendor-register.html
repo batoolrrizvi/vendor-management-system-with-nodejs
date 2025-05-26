@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Registration</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 20px; 
+            background-color: #f9f9f9; 
+        }
+        .container { 
+            max-width: 500px; 
+            margin: auto; 
+            padding: 20px; 
+            background: white; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); 
+        }
+        label { 
+            display: block; 
+            margin: 10px 0 5px; 
+        }
+        input { 
+            width: 100%; 
+            padding: 8px; 
+            margin-bottom: 10px; 
+            border: 1px solid #ddd; 
+            border-radius: 4px; 
+        }
+        button { 
+            padding: 10px 20px; 
+            background: #28a745; 
+            color: white; 
+            border: none; 
+            border-radius: 4px; 
+            cursor: pointer; 
+        }
+        button:hover { 
+            background: #218838; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vendor Registration</h1>
+        <form action="/register-vendor" method="POST">
+            <label for="vendor-name">Vendor Name</label>
+            <input type="text" id="vendor-name" name="vendorName" required>
+            <label for="vendor-email">Email</label>
+            <input type="email" id="vendor-email" name="email" required>
+            <label for="service-category">Service Category</label>
+            <input type="text" id="service-category" name="serviceCategory" required>
+            <label for="vendor-password">Password</label>
+            <input type="password" id="vendor-password" name="password" required>
+            <button type="submit">Register</button>
+        </form>
+    </div>
+</body>
+</html>

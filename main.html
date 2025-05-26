@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor Options</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #b1e4d4 0%, #87ceeb 100%);
+        }
+        .container {
+            text-align: center;
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background: #28a745;
+            color: #fff;
+        }
+        button:hover {
+            background: #64916d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Choose an Option</h1>
+        <p>Are you a Vendor or an Organization Employee?</p>
+        <!-- vendor Section -->
+        <button id="vendor-register">Register as Vendor</button>
+        <!-- organization Section -->
+        <button id="org-login">Login as Organization Employee</button>
+    </div>
+    <script>
+        // redirect to Vendor Registration
+        document.getElementById('vendor-register').addEventListener('click', () => {
+            window.location.href = '/vendor-register';
+        });
+        // redirect to Organization Employee Login
+        document.getElementById('org-login').addEventListener('click', () => {
+            window.location.href = '/organization-login';
+        });
+    </script>
+</body>
+</html>

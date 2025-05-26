@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contract Management</title>
+    <style>
+        body {
+            display: flex;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            height: 100vh;
+        }
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar button {
+            margin: 10px 0;
+            padding: 10px;
+            background: #34495e;
+            border: none;
+            color: white;
+            cursor: pointer;
+            text-align: left;
+        }
+        .sidebar button:hover {
+            background: #1abc9c;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        .contract {
+            background: #f4f4f4;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 5px solid #3498db;
+        }
+        .contract-actions button {
+            margin-right: 10px;
+            padding: 5px 10px;
+            background: #1abc9c;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        .contract-actions button:hover {
+            background: #16a085;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>Contract Management</h2>
+        <button onclick="showContracts()">View All Contracts</button>
+        <button onclick="checkRenewals()">Renew/Edit Contracts</button>
+        <button onclick="showNotifications()">Notifications</button>
+        <button id = 'logout' onclick="logOut()">Log Out</button>
+    </div>
+    <div class="content" id="content-area">
+        <h1>Contract Management Team</h1>
+    </div>
+
+    <script>
+        function showContracts() {
+            fetch('/contracts')
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                        <h2>All Contracts</h2>
+                        ${data.map(contract => `
+                            <div class="contract">
+                                <h3>${contract.ContractName}</h3>
+                                <p>Status: ${contract.C_Status}</p>
+                                <p>Vendor: ${contract.VendorName}</p>
+                                <p>End Date: ${contract.EndDate}</p>
+                                <p>Terms: ${contract.Terms}</p>
+                            </div>
+                        `).join('')}
+                    `;
+                });
+        }
+
+        function checkRenewals() {
+        fetch('/check-renewals')
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                        <h2>Active Contracts Near Expiration</h2>
+                        ${data.map(contract => `
+                            <div class="contract">
+                                <h3>${contract.ContractName}</h3>
+                                <p>Vendor: ${contract.VendorName}</p>
+                                <p>Expires in ${contract.DaysLeft} days</p>
+                                <button onclick="editContract(${contract.ContractID}, '${contract.ContractName}')">Edit</button>
+                                <button onclick="notifyExpiration(${contract.ContractID}, '${contract.ContractName}', ${contract.DaysLeft})">Notify Expiration</button>
+                            </div>
+                        `).join('')}
+                    `;
+                });
+        }
+
+
+        function showNotifications() {
+            fetch('/notifications')
+                .then(response => response.json())
+                .then(data => {
+                    const content = document.getElementById('content-area');
+                    content.innerHTML = `
+                        <h2>Notifications</h2>
+                        ${data.map(notification => `
+                            <div class="notification">${notification.NotificationText}</div>
+                        `).join('')}
+                    `;
+                });
+        }
+
+        function editContract(contractID, contractName) {
+            const renewalDate = prompt(`Enter new renewal date for ${contractName} (YYYY-MM-DD):`);
+            const terms = prompt(`Enter updated terms for ${contractName}:`);
+            if (renewalDate && terms) {
+                fetch('/contract/update', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contractID, renewalDate, terms })
+                }).then(() => alert(`Contract "${contractName}" updated.`));
+            }
+        }
+
+        function notifyExpiration(contractID, contractName, daysLeft) {
+            fetch('/generate-notification', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ contractID, contractName, daysLeft })
+            }).then(() => alert(`Notification for "${contractName}" added.`));
+        }
+        function logOut() {
+            window.location.assign("http://localhost:3000/");
+        }
+    </script>
+</body>
+</html>
